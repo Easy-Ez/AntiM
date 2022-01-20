@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "cc.wecando.miuihook"
-        minSdk 22
+        minSdk 26
         targetSdk 30
         versionCode 9
         versionName "1.8"

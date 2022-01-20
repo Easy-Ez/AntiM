@@ -2,47 +2,51 @@ package cc.wecando.miuihook.backend
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
+import cc.wecando.miuihook.Plugins
+import cc.wecando.miuihook.SpellBook.isImportantProcess
+import cc.wecando.miuihook.SecurityGlobal
+import cc.wecando.miuihook.util.XposedUtil
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class Hook : IXposedHookLoadPackage {
-    val fuckList = mutableListOf<IFuckTask>(FuckAdbInstallDialog, FuckSpecialDialog)
 
-    companion object {
-        const val packageName = "com.miui.securitycenter"
-    }
 
-    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
-        lpparam?.let {
-            if (packageName == it.packageName && it.isFirstApplication) {
-
-                XposedHelpers.findAndHookMethod(
-                    Application::class.java,
-                    "attach",
-                    Context::class.java,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            val context = param.args[0]
-                            if (context is Context) {
-
-                                val packageInfo =
-                                    context.packageManager.getPackageInfo(lpparam.packageName, 0)
-                                fuckList.forEach { item ->
-                                    item.fuck(
-                                        it,
-                                        context,
-                                        packageInfo
-                                    )
-                                }
-                            }
-                        }
-                    })
+    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
+        if (isImportantProcess(lpparam)) {
+            hookAttachBaseContext(lpparam.classLoader) {
+                handleLoadWechat(lpparam, it)
             }
         }
     }
 
+    private inline fun hookAttachBaseContext(
+        loader: ClassLoader,
+        crossinline callback: (Context) -> Unit
+    ) {
+        XposedHelpers.findAndHookMethod(
+            "android.content.ContextWrapper", loader, "attachBaseContext",
+            Context::class.java, object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    callback(param.thisObject as? Application ?: return)
+                }
+            })
+    }
 
+    private fun handleLoadWechat(lpparam: XC_LoadPackage.LoadPackageParam, context: Context) {
+        Log.d("Xposed", "Security SpellBook: ${Plugins.size} plugins.")
+        SecurityGlobal.init(lpparam)
+        Plugins.forEach {
+            if (!it.hasHooked) {
+                XposedUtil.postHooker(it)
+            }
+        }
+    }
 }
+
+
+
+

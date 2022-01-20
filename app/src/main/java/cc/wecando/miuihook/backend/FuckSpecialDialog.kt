@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo
 import android.os.Handler
 import android.view.View
 import android.widget.CheckBox
+import cc.wecando.miuihook.base.Hooker
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
@@ -25,80 +26,80 @@ import java.lang.reflect.Method
  * @email: c.yao@aftership.com
  * @date: 2021/9/2
  */
-object FuckSpecialDialog : IFuckTask {
-    override fun fuck(
-        lpparam: XC_LoadPackage.LoadPackageParam,
-        context: Context,
-        packageInfo: PackageInfo
-    ) {
-        val classloader = context.classLoader
-        XposedHelpers.findAndHookMethod(
-            "com.miui.permcenter.privacymanager.SpecialPermissionInterceptActivity",
-            classloader,
-            "r",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam?) {
-                    XposedHelpers.findAndHookMethod(
-                        "com.miui.permcenter.privacymanager.o.d",
-                        classloader,
-                        "c",
-                        Int::class.java,
-                        object : XC_MethodHook() {
-                            override fun beforeHookedMethod(param: MethodHookParam?) {
-                                param?.let {
-                                    XposedBridge.log("permName:${it.args[0]}")
-                                }
-                            }
-                        }
-                    )
-                }
-            }
-        )
-        XposedHelpers.findAndHookMethod(
-            "com.miui.permcenter.privacymanager.h",
-            classloader,
-            "a",
-            View::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    val aObject = param.thisObject
-                    findCheckBox(aObject).isChecked = true
-                    findHandler(aObject).removeCallbacksAndMessages(null)
-                    findCallbackForHandler(aObject).invoke(aObject, 0)
-                }
-            }
-        )
-
-    }
-
-    /**
-     * 获取 CheckBox 类型的字段,并返回
-     *
-     */
-    private fun findCheckBox(aObject: Any): CheckBox {
-        val aJavaClass = aObject.javaClass
-        val checkBoxField = aJavaClass.getDeclaredField("i")
-        checkBoxField.isAccessible = true
-        return checkBoxField.get(aObject) as CheckBox
-    }
-
-    /**
-     * 获取 Handler 类型的字段,并返回
-     *
-     */
-    private fun findHandler(aObject: Any): Handler {
-        val aJavaClass = aObject.javaClass
-        val handlerField = aJavaClass.superclass.getDeclaredField("a")
-        handlerField.isAccessible = true
-        return handlerField.get(aObject) as Handler
-    }
-
-    /**
-     * 获取 handler 每次倒计时的方法
-     * 签名为 g(int i)
-     */
-    private fun findCallbackForHandler(aObject: Any): Method {
-        val aJavaClass = aObject.javaClass
-        return aJavaClass.getDeclaredMethod("g", Int::class.java)
-    }
+val FuckSpecialDialog = Hooker {
+//    fun fuck(
+//        lpparam: XC_LoadPackage.LoadPackageParam,
+//        context: Context,
+//        packageInfo: PackageInfo
+//    ) {
+//        val classloader = context.classLoader
+//        XposedHelpers.findAndHookMethod(
+//            "com.miui.permcenter.privacymanager.SpecialPermissionInterceptActivity",
+//            classloader,
+//            "r",
+//            object : XC_MethodHook() {
+//                override fun beforeHookedMethod(param: MethodHookParam?) {
+//                    XposedHelpers.findAndHookMethod(
+//                        "com.miui.permcenter.privacymanager.o.d",
+//                        classloader,
+//                        "c",
+//                        Int::class.java,
+//                        object : XC_MethodHook() {
+//                            override fun beforeHookedMethod(param: MethodHookParam?) {
+//                                param?.let {
+//                                    XposedBridge.log("permName:${it.args[0]}")
+//                                }
+//                            }
+//                        }
+//                    )
+//                }
+//            }
+//        )
+//        XposedHelpers.findAndHookMethod(
+//            "com.miui.permcenter.privacymanager.h",
+//            classloader,
+//            "a",
+//            View::class.java,
+//            object : XC_MethodHook() {
+//                override fun afterHookedMethod(param: MethodHookParam) {
+//                    val aObject = param.thisObject
+//                    findCheckBox(aObject).isChecked = true
+//                    findHandler(aObject).removeCallbacksAndMessages(null)
+//                    findCallbackForHandler(aObject).invoke(aObject, 0)
+//                }
+//            }
+//        )
+//
+//    }
+//
+//    /**
+//     * 获取 CheckBox 类型的字段,并返回
+//     *
+//     */
+//    private fun findCheckBox(aObject: Any): CheckBox {
+//        val aJavaClass = aObject.javaClass
+//        val checkBoxField = aJavaClass.getDeclaredField("i")
+//        checkBoxField.isAccessible = true
+//        return checkBoxField.get(aObject) as CheckBox
+//    }
+//
+//    /**
+//     * 获取 Handler 类型的字段,并返回
+//     *
+//     */
+//    private fun findHandler(aObject: Any): Handler {
+//        val aJavaClass = aObject.javaClass
+//        val handlerField = aJavaClass.superclass.getDeclaredField("a")
+//        handlerField.isAccessible = true
+//        return handlerField.get(aObject) as Handler
+//    }
+//
+//    /**
+//     * 获取 handler 每次倒计时的方法
+//     * 签名为 g(int i)
+//     */
+//    private fun findCallbackForHandler(aObject: Any): Method {
+//        val aJavaClass = aObject.javaClass
+//        return aJavaClass.getDeclaredMethod("g", Int::class.java)
+//    }
 }
