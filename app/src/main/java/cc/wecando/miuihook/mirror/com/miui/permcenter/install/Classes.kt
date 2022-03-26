@@ -4,10 +4,12 @@ import cc.wecando.miuihook.SecurityGlobal
 import cc.wecando.miuihook.util.ReflectionUtil
 
 object Classes {
+
+
     val AdbInstallActivity: Class<*> by SecurityGlobal.wxLazy("AdbInstallActivity") {
         ReflectionUtil.findClassIfExists(
-            "${SecurityGlobal.wxPackageName}.install.AdbInstallActivity",
-            SecurityGlobal.wxLoader!!,
+            "com.miui.permcenter.install.AdbInstallActivity",
+            SecurityGlobal.loader!!,
         )
     }
 

@@ -5,5 +5,5 @@ package cc.wecando.miuihook.mirror
  */
 val MirrorMethods = listOf(
     cc.wecando.miuihook.mirror.com.miui.permcenter.install.Methods,
-    cc.wecando.miuihook.mirror.android.os.Methods
+    cc.wecando.miuihook.mirror.com.miui.antivirus.activity.Methods,
 )

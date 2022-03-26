@@ -1,21 +1,17 @@
 package cc.wecando.miuihook.backend
 
-import android.content.Context
-import android.content.DialogInterface
-import android.content.pm.PackageInfo
+import android.os.Handler
 import android.util.Log
+import android.widget.Button
 import cc.wecando.miuihook.base.Hooker
-import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Methods
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage
-import android.os.Bundle
 import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Classes.AdbInstallActivity
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
-import java.lang.reflect.Field
+import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Fields.AdbInstallActivity_Button
+import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Fields.AdbInstallActivity_Handler
+import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Methods
+import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Methods.AdbInstallActivity_finish
+import cc.wecando.miuihook.util.ReflectionUtil
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
 
 
 /**
@@ -41,68 +37,34 @@ import java.lang.reflect.Field
  * }
  **/
 val FuckAdbInstallDialog = Hooker {
-//    const val TAG = "dev-tool-AdbInstallDialog"
-//    const val versionName = "5.5.0-21077.0.2"
-//
-//    override fun fuck(
-//        lpparam: XC_LoadPackage.LoadPackageParam,
-//        context: Context,
-//        packageInfo: PackageInfo
-//    ) {
-//        Log.d(TAG, "FuckAdbInstallDialog version: ${packageInfo.versionName}")
-//        hookAdbInstallCreate(context.classLoader) {
-//            setAllowFlag(it.thisObject)
-//            finish(it.thisObject)
-//        }
-//
-//    }
-//
-//
-//    /**
-//     * hook usb 安装提醒弹出页面
-//     */
-//    private fun hookAdbInstallCreate(
-//        classLoader: ClassLoader,
-//        callback: (param: XC_MethodHook.MethodHookParam) -> Unit
-//    ) {
-//        XposedHelpers.findAndHookMethod(
-//            "com.miui.permcenter.install.AdbInstallActivity",
-//            classLoader,
-//            "a",
-//            XposedHelpers.findClass("miuix.appcompat.app.i", classLoader),
-//            object : XC_MethodHook() {
-//                override fun afterHookedMethod(param: MethodHookParam?) {
-//                    param?.let {
-//                        callback(it)
-//                    }
-//                }
-//            })
-//    }
-//
-//    /**
-//     * 修改 flag
-//     */
-//    private fun setAllowFlag(adbInstallActivity: Any) {
-//        val declaredField = adbInstallActivity.javaClass.getDeclaredField("c")
-//        declaredField.isAccessible = true
-//        declaredField.set(adbInstallActivity, -1)
-//    }
-//
-//
-//    /**
-//     * 修改 flag 后直接退出
-//     * 原始逻辑会监听dialog 的 dismiss 事件
-//     */
-//    private fun finish(adbInstallActivity: Any) {
-//        val method = adbInstallActivity.javaClass.getDeclaredMethod("finish")
-//        method.invoke(adbInstallActivity)
-//    }
-
-
-    XposedBridge.hookMethod(Methods.AdbInstallActivity_onDestroy, object : XC_MethodReplacement() {
-        override fun replaceHookedMethod(param: MethodHookParam?): Any {
+    // anti auto reject
+    XposedBridge.hookMethod(Methods.AdbInstallActivity_init, object : XC_MethodHook() {
+        override fun afterHookedMethod(param: MethodHookParam) {
+            // 停止倒计时
+            (AdbInstallActivity_Handler.get(param.thisObject) as Handler).removeMessages(10)
+            // 修改 button 文案
+            (AdbInstallActivity_Button.get(param.thisObject) as Button).text = "拒绝"
+            // auto install
+            // 方案一, 模拟点击 "继续安装" 按钮, 页面会闪一下
+            //(MIUIDialog_getButton.invoke(param.args.first(), -2) as Button).performClick()
+            // 方案二 直接 finish, hook onDestroy ,修改 message what 为 -1 , 用户无感知
+            AdbInstallActivity_finish.invoke(param.thisObject)
         }
+    })
 
+    // auto install
+    XposedBridge.hookMethod(Methods.AdbInstallActivity_onDestroy, object : XC_MethodHook() {
+        override fun beforeHookedMethod(param: MethodHookParam) {
+            Log.d("anti-dev", "beforeHookedMethod onDestroy")
+            ReflectionUtil
+                .findDeclaredFieldsWithType(
+                    AdbInstallActivity,
+                    Int::class.java
+                ).first() {
+                    it.isAccessible = true
+                    it.getInt(param.thisObject) <= 0
+                }.setInt(param.thisObject, -1)
+        }
     })
 
 }

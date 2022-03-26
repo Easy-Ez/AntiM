@@ -27,7 +27,7 @@ object BasicUtil {
         return try {
             func()
         } catch (t: Throwable) {
-            Log.e("Xposed", Log.getStackTraceString(t)); null
+            Log.e("anti-dev", Log.getStackTraceString(t)); null
         }
     }
 
@@ -40,7 +40,7 @@ object BasicUtil {
     inline fun tryAsynchronously(crossinline func: () -> Unit): Thread {
         return thread(start = true) { func() }.apply {
             setUncaughtExceptionHandler { _, t ->
-                Log.e("Xposed", Log.getStackTraceString(t))
+                Log.e("anti-dev", Log.getStackTraceString(t))
             }
         }
     }

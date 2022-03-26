@@ -4,8 +4,8 @@ import android.util.Log
 import cc.wecando.miuihook.util.ReflectionUtil.findConstructorIfExists
 import cc.wecando.miuihook.util.ReflectionUtil.findFieldIfExists
 import cc.wecando.miuihook.util.ReflectionUtil.findDeclaredFieldsWithType
-import cc.wecando.miuihook.util.ReflectionUtil.findMethodExactIfExists
-import cc.wecando.miuihook.util.ReflectionUtil.findMethodsByExactParameters
+import cc.wecando.miuihook.util.ReflectionUtil.findDeclaredMethodExactIfExists
+import cc.wecando.miuihook.util.ReflectionUtil.findDeclaredMethodsByExactParameters
 import cc.wecando.miuihook.util.ReflectionUtil.findStaticDeclaredFieldsWithType
 import cc.wecando.miuihook.util.ReflectionUtil.findSupper
 import java.lang.reflect.Modifier
@@ -81,13 +81,13 @@ class Classes(private val classes: List<Class<*>>) {
         })
     }
 
-    fun filterByMethod(
+    fun filterByDeclaredMethod(
         returnType: Class<*>?,
         methodName: String,
         vararg parameterTypes: Class<*>
     ): Classes {
         return Classes(classes.filter { clazz ->
-            val method = findMethodExactIfExists(clazz, methodName, *parameterTypes)
+            val method = findDeclaredMethodExactIfExists(clazz, methodName, *parameterTypes)
             method != null && method.returnType == returnType ?: method.returnType
         }.also {
             if (it.isEmpty()) {
@@ -117,9 +117,9 @@ class Classes(private val classes: List<Class<*>>) {
         })
     }
 
-    fun filterByMethod(returnType: Class<*>?, vararg parameterTypes: Class<*>): Classes {
+    fun filterByDeclaredMethod(returnType: Class<*>?, vararg parameterTypes: Class<*>): Classes {
         return Classes(classes.filter { clazz ->
-            findMethodsByExactParameters(clazz, returnType, *parameterTypes).isNotEmpty()
+            findDeclaredMethodsByExactParameters(clazz, returnType, *parameterTypes).isNotEmpty()
         }.also {
             if (it.isEmpty()) {
                 Log.w(
@@ -226,6 +226,21 @@ class Classes(private val classes: List<Class<*>>) {
             }
         })
     }
+    /**
+     * 过滤出是抽象类
+     */
+    fun filterIsAbsClass(): Classes {
+        return Classes(classes.filter { clazz ->
+            Modifier.isAbstract(clazz.modifiers)
+        }.also {
+            if (it.isEmpty()) {
+                Log.w(
+                    TAG,
+                    "filterAnonymousClass found nothing"
+                )
+            }
+        })
+    }
 
     /**
      * 过滤出是静态抽象类
@@ -308,7 +323,7 @@ class Classes(private val classes: List<Class<*>>) {
     fun firstOrNull(): Class<*>? {
         if (classes.size > 1) {
             val names = classes.map { it.canonicalName }
-            Log.w("Xposed", "found a signature that matches more than one class: $names")
+            Log.w("anti-dev", "found a signature that matches more than one class: $names")
         }
         return classes.firstOrNull()
     }

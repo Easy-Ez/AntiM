@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import cc.wecando.miuihook.Plugins
-import cc.wecando.miuihook.SpellBook.isImportantProcess
 import cc.wecando.miuihook.SecurityGlobal
+import cc.wecando.miuihook.SpellBook.isImportantProcess
 import cc.wecando.miuihook.util.XposedUtil
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
@@ -37,7 +37,7 @@ class Hook : IXposedHookLoadPackage {
     }
 
     private fun handleLoadWechat(lpparam: XC_LoadPackage.LoadPackageParam, context: Context) {
-        Log.d("Xposed", "Security SpellBook: ${Plugins.size} plugins.")
+        Log.d("anti-dev", "Security SpellBook: ${Plugins.size} plugins.")
         SecurityGlobal.init(lpparam)
         Plugins.forEach {
             if (!it.hasHooked) {

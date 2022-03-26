@@ -1,8 +1,8 @@
 package cc.wecando.miuihook.mirror.com.miui.permcenter.install
 
 import android.os.Handler
+import android.widget.Button
 import cc.wecando.miuihook.SecurityGlobal
-import cc.wecando.miuihook.mirror.android.os.Classes.IMessenger
 import cc.wecando.miuihook.mirror.com.miui.permcenter.install.Classes.AdbInstallActivity
 import cc.wecando.miuihook.util.ReflectionUtil
 import java.lang.reflect.Field
@@ -18,16 +18,14 @@ object Fields {
             ?.apply { isAccessible = true }
     }
 
-
-    val AdbInstallActivity_IMessenger: Field by SecurityGlobal.wxLazy("AdbInstallActivity_IMessenger") {
+    val AdbInstallActivity_Button: Field by SecurityGlobal.wxLazy("AdbInstallActivity_Button") {
         ReflectionUtil
             .findDeclaredFieldsWithType(
                 AdbInstallActivity,
-                IMessenger
+                Button::class.java
             )
             .firstOrNull()
             ?.apply { isAccessible = true }
     }
-
 
 }
