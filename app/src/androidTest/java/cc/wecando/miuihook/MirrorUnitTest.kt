@@ -62,10 +62,10 @@ class MirrorUnitTest {
 
             // 初始化 WechatGlobal
             SecurityGlobal.wxUnitTestMode = true
-            SecurityGlobal.wxVersion = Version(version)
-            SecurityGlobal.wxPackageName = "com.miui.permcenter"
-            SecurityGlobal.wxLoader = PathClassLoader(apkFile.absolutePath, getSystemClassLoader())
-            SecurityGlobal.wxClasses = it.classTypes
+            SecurityGlobal.versivon = Version(version)
+            SecurityGlobal.packageName = "com.miui.permcenter"
+            SecurityGlobal.loader = PathClassLoader(apkFile.absolutePath, getSystemClassLoader())
+            SecurityGlobal.classes = it.classTypes
 
             // 清理上次测试留下的缓存
             val objects = MirrorClasses + MirrorMethods + MirrorFields
@@ -87,6 +87,11 @@ class MirrorUnitTest {
         }
 
         apkFile.delete()
+    }
+
+    @Test
+    fun verifyDomesticPackage6_0_0() {
+        verifyPackage("$DOMESTIC_DIR/v6.0.0.apk")
     }
 
     @Test

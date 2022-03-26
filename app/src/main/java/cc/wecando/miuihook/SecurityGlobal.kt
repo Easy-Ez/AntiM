@@ -1,5 +1,6 @@
 package cc.wecando.miuihook
 
+import android.util.Log
 import cc.wecando.miuihook.SpellBook.getApplicationVersion
 import cc.wecando.miuihook.base.Version
 import cc.wecando.miuihook.base.WaitChannel
@@ -33,7 +34,7 @@ object SecurityGlobal {
      * 如果初始化还未完成的话, 访问该对象的线程会自动阻塞 [INIT_TIMEOUT] ms
      */
     @Volatile
-    var wxVersion: Version? = null
+    var versivon: Version? = null
         get() {
             if (!wxUnitTestMode) {
                 initChannel.wait(INIT_TIMEOUT)
@@ -48,7 +49,7 @@ object SecurityGlobal {
      * 如果初始化还未完成的话, 访问该对象的线程会自动阻塞 [INIT_TIMEOUT] ms
      */
     @Volatile
-    var wxPackageName: String = ""
+    var packageName: String = ""
         get() {
             if (!wxUnitTestMode) {
                 initChannel.wait(INIT_TIMEOUT)
@@ -63,7 +64,7 @@ object SecurityGlobal {
      * 如果初始化还未完成的话, 访问该对象的线程会自动阻塞 [INIT_TIMEOUT] ms
      */
     @Volatile
-    var wxLoader: ClassLoader? = null
+    var loader: ClassLoader? = null
         get() {
             if (!wxUnitTestMode) {
                 initChannel.wait(INIT_TIMEOUT)
@@ -78,7 +79,7 @@ object SecurityGlobal {
      * 如果初始化还未完成的话, 访问该对象的线程会自动阻塞 [INIT_TIMEOUT] ms
      */
     @Volatile
-    var wxClasses: ClassTrie? = null
+    var classes: ClassTrie? = null
         get() {
             if (!wxUnitTestMode) {
                 initChannel.wait(INIT_TIMEOUT)
@@ -111,7 +112,7 @@ object SecurityGlobal {
         val clazz = T::class.java
         return if (wxUnitTestMode) {
             UnitTestLazyImpl {
-                if (initialVersion == null || wxVersion!! >= initialVersion) {
+                if (initialVersion == null || versivon!! >= initialVersion) {
                     initializer() ?: throw Error("Failed to evaluate $name")
                 } else {
                     createDefaultValueForUnusedVersion(clazz)
@@ -121,12 +122,12 @@ object SecurityGlobal {
 
             lazy(LazyThreadSafetyMode.PUBLICATION) {
                 when (null) {
-                    wxVersion -> throw Error("Invalid wxVersion")
-                    wxPackageName -> throw Error("Invalid wxPackageName")
-                    wxLoader -> throw Error("Invalid wxLoader")
-                    wxClasses -> throw Error("Invalid wxClasses")
+                    versivon -> throw Error("Invalid wxVersion")
+                    packageName -> throw Error("Invalid wxPackageName")
+                    loader -> throw Error("Invalid wxLoader")
+                    classes -> throw Error("Invalid wxClasses")
                 }
-                if (initialVersion == null || wxVersion!! >= initialVersion) {
+                if (initialVersion == null || versivon!! >= initialVersion) {
                     initializer() ?: throw Error("Failed to evaluate $name")
                 } else {
                     createDefaultValueForUnusedVersion(clazz)
@@ -182,13 +183,20 @@ object SecurityGlobal {
             }
 
             try {
-                wxVersion = getApplicationVersion(lpparam.packageName)
-                wxPackageName = lpparam.packageName
-                wxLoader = lpparam.classLoader
+                versivon = getApplicationVersion(lpparam.packageName)
+                packageName = lpparam.packageName
+                loader = lpparam.classLoader
 
                 ApkFile(lpparam.appInfo.sourceDir).use {
-                    wxClasses = it.classTypes
+                    classes = it.classTypes
                 }
+
+                Log.e(
+                    "anti-dev",
+                    "wxVersion:${versivon},wxPackageName${packageName},wxClasses:${classes}"
+                )
+            } catch (e: Exception) {
+                Log.e("anti-dev", "SpellBook init error", e)
             } finally {
                 initChannel.done()
             }
