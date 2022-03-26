@@ -1,10 +1,7 @@
 package cc.wecando.miuihook
 
-import android.app.Application
 import android.content.Context
-import cc.wecando.miuihook.backend.Hook
 import cc.wecando.miuihook.base.Version
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
