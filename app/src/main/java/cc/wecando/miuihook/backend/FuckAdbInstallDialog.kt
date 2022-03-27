@@ -17,7 +17,7 @@ import de.robv.android.xposed.XposedBridge
 /**
  * com.miui.permcenter.install.AdbInstallActivity
  * adb install apk 时, miui 有烦人的倒计时提醒,啥 jb 玩意.
- * destroy 的时候会判断是否允许, 字段 c 允许后会设置为-1
+ * destroy 的时候会判断是否允许, flag 字段允许后会设置为-1
  * protected void onDestroy() {
  *     super.onDestroy();
  *     this.o.removeMessages(10);
@@ -60,7 +60,7 @@ val FuckAdbInstallDialog = Hooker {
                 .findDeclaredFieldsWithType(
                     AdbInstallActivity,
                     Int::class.java
-                ).first() {
+                ).first {
                     it.isAccessible = true
                     it.getInt(param.thisObject) <= 0
                 }.setInt(param.thisObject, -1)
