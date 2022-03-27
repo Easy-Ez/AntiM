@@ -1,5 +1,6 @@
 package cc.wecando.miuihook.util
 
+import android.util.Log
 import cc.wecando.miuihook.base.Classes
 import cc.wecando.miuihook.parser.ApkFile
 import cc.wecando.miuihook.parser.ClassTrie
@@ -42,6 +43,11 @@ object ReflectionUtil {
     }
 
     /**
+     * 用于缓存已经完成的[findDeclaredMethodExact]的搜索结果
+     */
+    private val declaredMethodCache: MutableMap<String, Method?> = ConcurrentHashMap()
+
+    /**
      * 用于缓存已经完成的[findMethodExact]的搜索结果
      */
     private val methodCache: MutableMap<String, Method?> = ConcurrentHashMap()
@@ -53,6 +59,7 @@ object ReflectionUtil {
 
     @JvmStatic
     fun clearMethodCache() {
+        declaredMethodCache.clear()
         methodCache.clear()
     }
 
@@ -67,6 +74,7 @@ object ReflectionUtil {
             if (SecurityGlobal.wxUnitTestMode) {
                 throw throwable
             }
+            Log.e("anti-dev", "findClassIfExists", throwable)
         }
         return null
     }
@@ -101,20 +109,13 @@ object ReflectionUtil {
         return classes.also { classCache[key] = classes }
     }
 
-    /**
-     * 查找一个确定的方法, 如果不存在返回 null
-     */
     @JvmStatic
-    fun findMethodExactIfExists(
+    fun findDeclaredClasses(
         clazz: Class<*>,
-        methodName: String,
-        vararg parameterTypes: Class<*>
-    ): Method? =
-        try {
-            findMethodExact(clazz, methodName, *parameterTypes)
-        } catch (_: Throwable) {
-            null
-        }
+    ): Classes {
+        return Classes(clazz.declaredClasses.toList())
+    }
+
 
     /**
      * 查找一个确定的构造方法, 如果不存在返回 null
@@ -148,11 +149,55 @@ object ReflectionUtil {
             }
             return constructor.also { constructorCache[fullMethodName] = constructor }
         } catch (e: NoSuchMethodException) {
-            methodCache[fullMethodName] = null
+            declaredMethodCache[fullMethodName] = null
             throw NoSuchMethodError(fullMethodName)
         }
     }
 
+
+    /**
+     * 查找一个确定的方法, 如果不存在, 抛出 [NoSuchMethodException] 异常
+     *
+     * @param clazz 该方法所属的类
+     * @param methodName 该方法的名称
+     * @param parameterTypes 该方法的参数类型
+     */
+    @JvmStatic
+    fun findDeclaredMethodExact(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method {
+        val fullMethodName =
+            "${clazz.name}#$methodName${getParametersString(*parameterTypes)}#exact"
+        if (fullMethodName in declaredMethodCache) {
+            return declaredMethodCache[fullMethodName] ?: throw NoSuchMethodError(fullMethodName)
+        }
+        try {
+            val method = clazz.getDeclaredMethod(methodName, *parameterTypes).apply {
+                isAccessible = true
+            }
+            return method.also { declaredMethodCache[fullMethodName] = method }
+        } catch (e: NoSuchMethodException) {
+            declaredMethodCache[fullMethodName] = null
+            throw NoSuchMethodError(fullMethodName)
+        }
+    }
+
+    /**
+     * 查找一个确定的方法, 如果不存在返回 null
+     */
+    @JvmStatic
+    fun findDeclaredMethodExactIfExists(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method? =
+        try {
+            findDeclaredMethodExact(clazz, methodName, *parameterTypes)
+        } catch (_: Throwable) {
+            null
+        }
 
     /**
      * 查找一个确定的方法, 如果不存在, 抛出 [NoSuchMethodException] 异常
@@ -173,7 +218,7 @@ object ReflectionUtil {
             return methodCache[fullMethodName] ?: throw NoSuchMethodError(fullMethodName)
         }
         try {
-            val method = clazz.getDeclaredMethod(methodName, *parameterTypes).apply {
+            val method = clazz.getMethod(methodName, *parameterTypes).apply {
                 isAccessible = true
             }
             return method.also { methodCache[fullMethodName] = method }
@@ -184,6 +229,21 @@ object ReflectionUtil {
     }
 
     /**
+     * 查找一个确定的方法, 如果不存在返回 null
+     */
+    @JvmStatic
+    fun findMethodExactIfExists(
+        clazz: Class<*>,
+        methodName: String,
+        vararg parameterTypes: Class<*>
+    ): Method? =
+        try {
+            findMethodExact(clazz, methodName, *parameterTypes)
+        } catch (_: Throwable) {
+            null
+        }
+
+    /**
      * 查找所有满足要求的方法
      *
      * @param clazz 该方法所属的类
@@ -191,7 +251,7 @@ object ReflectionUtil {
      * @param parameterTypes 该方法的参数类型
      */
     @JvmStatic
-    fun findMethodsByExactParameters(
+    fun findDeclaredMethodsByExactParameters(
         clazz: Class<*>,
         returnType: Class<*>?,
         vararg parameterTypes: Class<*>
