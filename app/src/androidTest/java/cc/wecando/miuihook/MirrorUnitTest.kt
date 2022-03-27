@@ -62,7 +62,7 @@ class MirrorUnitTest {
 
             // 初始化 WechatGlobal
             SecurityGlobal.wxUnitTestMode = true
-            SecurityGlobal.versivon = Version(version)
+            SecurityGlobal.version = Version(version)
             SecurityGlobal.packageName = "com.miui.permcenter"
             SecurityGlobal.loader = PathClassLoader(apkFile.absolutePath, getSystemClassLoader())
             SecurityGlobal.classes = it.classTypes

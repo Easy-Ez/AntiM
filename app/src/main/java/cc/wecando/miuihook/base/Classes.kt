@@ -226,6 +226,7 @@ class Classes(private val classes: List<Class<*>>) {
             }
         })
     }
+
     /**
      * 过滤出是抽象类
      */
@@ -326,5 +327,13 @@ class Classes(private val classes: List<Class<*>>) {
             Log.w("anti-dev", "found a signature that matches more than one class: $names")
         }
         return classes.firstOrNull()
+    }
+
+    fun <T> firstOrNullWithGeneric(): Class<T>? {
+        if (classes.size > 1) {
+            val names = classes.map { it.canonicalName }
+            Log.w("anti-dev", "found a signature that matches more than one class: $names")
+        }
+        return (classes as List<Class<T>>).firstOrNull()
     }
 }

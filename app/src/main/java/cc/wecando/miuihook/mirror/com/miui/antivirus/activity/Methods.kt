@@ -10,7 +10,7 @@ import java.lang.reflect.Modifier
 
 object Methods {
 
-    val BaseActivity_init: Method by SecurityGlobal.wxLazy("BaseActivity_init") {
+    val BaseActivity_init: Method by SecurityGlobal.lazy("BaseActivity_init") {
         BaseActivity.declaredMethods.firstOrNull {
             it.parameterCount == 1 && it.parameterTypes.first() != Bundle::class.java && Modifier.isProtected(
                 it.modifiers
@@ -18,7 +18,7 @@ object Methods {
         }
     }
 
-    val MIUIDialog_getButton: Method by SecurityGlobal.wxLazy("MIUIDialog_getButton") {
+    val MIUIDialog_getButton: Method by SecurityGlobal.lazy("MIUIDialog_getButton") {
         ReflectionUtil.findDeclaredMethodsByExactParameters(
             BaseActivity_init.parameterTypes.first(),
             Button::class.java,
