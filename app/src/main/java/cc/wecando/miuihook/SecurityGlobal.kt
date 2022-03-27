@@ -34,7 +34,7 @@ object SecurityGlobal {
      * 如果初始化还未完成的话, 访问该对象的线程会自动阻塞 [INIT_TIMEOUT] ms
      */
     @Volatile
-    var versivon: Version? = null
+    var version: Version? = null
         get() {
             if (!wxUnitTestMode) {
                 initChannel.wait(INIT_TIMEOUT)
@@ -104,7 +104,7 @@ object SecurityGlobal {
      * @param initialVersion 大于等于指定版本才需要初始化
      * @param initializer 用来求值的回调函数
      */
-    inline fun <reified T> wxLazy(
+    inline fun <reified T> lazy(
         name: String,
         initialVersion: Version? = null,
         crossinline initializer: () -> T?
@@ -112,7 +112,7 @@ object SecurityGlobal {
         val clazz = T::class.java
         return if (wxUnitTestMode) {
             UnitTestLazyImpl {
-                if (initialVersion == null || versivon!! >= initialVersion) {
+                if (initialVersion == null || version!! >= initialVersion) {
                     initializer() ?: throw Error("Failed to evaluate $name")
                 } else {
                     createDefaultValueForUnusedVersion(clazz)
@@ -122,12 +122,12 @@ object SecurityGlobal {
 
             lazy(LazyThreadSafetyMode.PUBLICATION) {
                 when (null) {
-                    versivon -> throw Error("Invalid wxVersion")
-                    packageName -> throw Error("Invalid wxPackageName")
-                    loader -> throw Error("Invalid wxLoader")
-                    classes -> throw Error("Invalid wxClasses")
+                    version -> throw Error("Invalid version")
+                    packageName -> throw Error("Invalid packageName")
+                    loader -> throw Error("Invalid loader")
+                    classes -> throw Error("Invalid classes")
                 }
-                if (initialVersion == null || versivon!! >= initialVersion) {
+                if (initialVersion == null || version!! >= initialVersion) {
                     initializer() ?: throw Error("Failed to evaluate $name")
                 } else {
                     createDefaultValueForUnusedVersion(clazz)
@@ -183,7 +183,7 @@ object SecurityGlobal {
             }
 
             try {
-                versivon = getApplicationVersion(lpparam.packageName)
+                version = getApplicationVersion(lpparam.packageName)
                 packageName = lpparam.packageName
                 loader = lpparam.classLoader
 
@@ -193,7 +193,7 @@ object SecurityGlobal {
 
                 Log.e(
                     "anti-dev",
-                    "wxVersion:${versivon},wxPackageName${packageName},wxClasses:${classes}"
+                    "wxVersion:${version},wxPackageName${packageName},wxClasses:${classes}"
                 )
             } catch (e: Exception) {
                 Log.e("anti-dev", "SpellBook init error", e)
