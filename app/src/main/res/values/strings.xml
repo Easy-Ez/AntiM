@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MIUI Hook</string>
+    <string name="app_name">AntiM</string>
 
     <string-array name="package_scope">
         <item>com.miui.securitycenter</item>

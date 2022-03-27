@@ -7,9 +7,9 @@ android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "cc.wecando.miuihook"
+        applicationId "cc.wecando.antim"
         minSdk 26
-        targetSdk 30
+        targetSdk 26
         versionCode 1
         versionName "1.0"
 
